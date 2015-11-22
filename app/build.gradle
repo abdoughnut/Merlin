@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.1"
+    buildToolsVersion "23.0.2"
 
     defaultConfig {
         applicationId "com.abdodaoud.merlin"
@@ -29,7 +29,10 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains.anko:anko-sdk15:$anko_version"
     compile "org.jetbrains.anko:anko-support-v4:$anko_version"
-    compile "com.google.code.gson:gson:2.3.1"
+    compile "com.google.code.gson:gson:2.4"
+    compile('com.mikepenz:materialdrawer:4.4.0@aar') {
+        transitive = true
+    }
 }
 
 buildscript {

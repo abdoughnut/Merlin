@@ -5,4 +5,15 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+    <string name="drawer_settings_title">SETTINGS</string>
+    <string name="drawer_about_title">ABOUT</string>
+    <string name="drawer_donate_title">DONATE</string>
+    <string name="drawer_notifications">Notifications</string>
+    <string name="drawer_time">Time</string>
+    <string name="drawer_contact">Contact</string>
+    <string name="drawer_website">Visit Website</string>
+    <string name="drawer_reddit">Read more from Reddit</string>
+    <string name="drawer_donate_small">Humble</string>
+    <string name="drawer_donate_medium">Thoughtful</string>
+    <string name="drawer_donate_big">Generous</string>
 </resources>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="@dimen/spacing_xxlarge"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/spacing_xlarge"
+        android:paddingRight="@dimen/spacing_xlarge"
+        android:layout_marginTop="@dimen/spacing_xlarge"
+        android:layout_marginLeft="@dimen/spacing_xlarge"
+        android:layout_marginRight="@dimen/spacing_xlarge"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textColor="@color/textPrimary"
+            tools:text="Adidas will cancel any sponsorship deal they have with a player if it turns out he has anything to do with Scientology"/>
+
+        <TextView
+            android:id="@+id/date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="@color/textHighlight"
+            android:paddingTop="4dp"
+            android:paddingBottom="@dimen/spacing_xlarge"
+            android:layout_marginBottom="@dimen/spacing_xxlarge"
+            tools:text="May 14, 2015"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:background="@color/colorDivider"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp" />
+
+</LinearLayout>
