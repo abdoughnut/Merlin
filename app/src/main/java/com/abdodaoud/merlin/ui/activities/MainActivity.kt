@@ -151,11 +151,8 @@ class MainActivity : AppCompatActivity(), ToolbarManager {
             }
             // contact
             7 -> {
-                // TODO create gmail account for merlin
-                val emailIntent = Intent(Intent.ACTION_SENDTO,
-                        Uri.fromParts("mailto", "abdo@daoud.co", null));
-                emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Merlin The App");
-                startActivity(emailIntent)
+                startActivity(Intent(Intent.ACTION_SENDTO,
+                        Uri.fromParts("mailto", "merlintheapp@gmail.com", null)))
             }
             // visit website
             // TODO Set up website
