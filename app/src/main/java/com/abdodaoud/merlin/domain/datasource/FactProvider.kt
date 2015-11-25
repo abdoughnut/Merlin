@@ -14,16 +14,23 @@ class FactProvider(val sources: List<FactDataSource> = FactProvider.SOURCES) {
         val SOURCES = listOf(FactDb(), FactServer())
     }
 
-    fun request(days: Int): FactList = requestToSources {
-        val res = it.request(tomorrowTimeSpan())
-        if (res != null && res.size() >= days) res else null
+    fun request(): FactList = requestToSources {
+        val res = it.request(todayTimeSpan())
+        if (res != null && hasTodayFact(res)) res else null
+    }
+
+    private fun hasTodayFact(res: FactList): Boolean {
+        val created = System.currentTimeMillis() - (System.currentTimeMillis() % DateUtils.DAY_IN_MILLIS)
+        for (fact in res.dailyFact) {
+            if (fact.created == created) return true
+        }
+        return false
     }
 
     fun requestFact(id: Long): Fact = requestToSources { it.requestDayFact(id) }
 
-    private fun tomorrowTimeSpan() = System.currentTimeMillis() + DateUtils.DAY_IN_MILLIS +
-            (DateUtils.DAY_IN_MILLIS - System.currentTimeMillis() % DateUtils.DAY_IN_MILLIS) /
-                    DAY_IN_MILLIS * DAY_IN_MILLIS
+    private fun todayTimeSpan() = System.currentTimeMillis() -
+            (System.currentTimeMillis() % DateUtils.DAY_IN_MILLIS) / DAY_IN_MILLIS * DAY_IN_MILLIS
 
     private fun <T : Any> requestToSources(f: (FactDataSource) -> T?): T = sources.firstResult { f(it) }
 

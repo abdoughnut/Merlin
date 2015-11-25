@@ -21,7 +21,7 @@ class FactDb(val factDbHelper: FactDbHelper = FactDbHelper.instance,
 
     override fun request(date: Long) = factDbHelper.use {
 
-        val dailyRequest = "${DayFactTable.DATE} <= ?"
+        val dailyRequest = "${DayFactTable.DATE} < ?"
         val dailyFact = select(DayFactTable.NAME)
                 .whereSimple(dailyRequest, date.toString())
                 .parseList { DayFact(HashMap(it)) }

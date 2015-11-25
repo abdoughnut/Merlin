@@ -7,9 +7,5 @@ class RequestFactCommand(
         val factProvider: FactProvider = FactProvider()) :
         Command<FactList> {
 
-    companion object {
-        val DAYS = 3
-    }
-
-    override fun execute() = factProvider.request(DAYS)
+    override fun execute() = factProvider.request()
 }
