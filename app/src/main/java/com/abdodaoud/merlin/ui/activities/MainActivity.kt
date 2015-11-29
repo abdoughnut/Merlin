@@ -1,6 +1,8 @@
 package com.abdodaoud.merlin.ui.activities
 
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.AppBarLayout
@@ -8,13 +10,16 @@ import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.Toolbar
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import com.abdodaoud.merlin.R
 import com.abdodaoud.merlin.domain.commands.RequestDayFactCommand
 import com.abdodaoud.merlin.domain.commands.RequestFactCommand
 import com.abdodaoud.merlin.ui.adapters.FactListAdapter
+import com.abdodaoud.merlin.util.AlarmService
+import com.abdodaoud.merlin.util.Constants
+import com.anjlab.android.iab.v3.BillingProcessor
+import com.anjlab.android.iab.v3.TransactionDetails
 import com.mikepenz.materialdrawer.AccountHeaderBuilder
 import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.model.DividerDrawerItem
@@ -22,24 +27,46 @@ import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem
 import com.mikepenz.materialdrawer.model.interfaces.Iconable
+import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout
+import com.wdullaer.materialdatetimepicker.time.TimePickerDialog
 import kotlinx.android.synthetic.activity_main.*
 import org.jetbrains.anko.async
 import org.jetbrains.anko.find
 import org.jetbrains.anko.uiThread
 
-class MainActivity : AppCompatActivity(), ToolbarManager {
+class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTimeSetListener,
+        BillingProcessor.IBillingHandler {
 
     override val toolbar by lazy { find<Toolbar>(R.id.toolbar) }
     override val appBarLayout by lazy { find<AppBarLayout>(R.id.appBarLayout) }
     override val swipeRefreshLayout by lazy { find<SwipeRefreshLayout>(R.id.contentView) }
     override val density by lazy { resources.displayMetrics.density }
+
     val splashScreenImageView by lazy { find<ImageView>(R.id.splash_screen) }
-    var notificationOn = false
+
+    val bp by lazy { BillingProcessor(this, Constants.LICENSE_KEY, Constants.MERCHANT_ID, this) }
+
+    var sharedPref: SharedPreferences? = null
+    var editor: SharedPreferences.Editor? = null
+
+    var notificationOn: Boolean = false
+    var hourOfDay: Int = 9
+    var minute: Int = 0
+
+    var message: String = ""
+    var source: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         toolbarTitle = getString(R.string.app_name)
+
+        sharedPref = getSharedPreferences(Constants.PREF_FILE, Context.MODE_PRIVATE)
+        editor = sharedPref?.edit()
+
+        notificationOn = sharedPref?.getBoolean(getString(R.string.pref_notification), false) as Boolean
+        hourOfDay = sharedPref?.getInt(getString(R.string.pref_hour), 9) as Int
+        minute = sharedPref?.getInt(getString(R.string.pref_minute), 0) as Int
 
         setupNavDrawer()
 
@@ -49,8 +76,9 @@ class MainActivity : AppCompatActivity(), ToolbarManager {
             swipeRefreshLayout.isRefreshing = false
         }
 
-        factList.layoutManager = LinearLayoutManager(this)
-        attachToScroll(factList)
+        val linearLayoutManager = LinearLayoutManager(this)
+        factList.layoutManager = linearLayoutManager
+        attachToScroll(factList, linearLayoutManager)
     }
 
     override fun onPause() {
@@ -62,8 +90,54 @@ class MainActivity : AppCompatActivity(), ToolbarManager {
         loadFacts()
     }
 
+    override fun onDestroy() {
+        bp.release()
+        super.onDestroy()
+    }
+
+    override fun onTimeSet(view: RadialPickerLayout?, hourOfDay: Int, minute: Int, second: Int) {
+        this.hourOfDay = hourOfDay
+        this.minute = minute
+
+        editor?.putInt(getString(R.string.pref_hour), hourOfDay)
+        editor?.putInt(getString(R.string.pref_minute), minute)
+        editor?.commit()
+
+        AlarmService(this, message, source).startAlarm()
+    }
+
+    override fun onBillingInitialized() {
+        // Called when BillingProcessor was initialized and it's ready to purchase
+    }
+
+    override fun onProductPurchased(productId: String?, details: TransactionDetails?) {
+        // Called when requested PRODUCT ID was successfully purchased
+        bp.consumePurchase(productId)
+    }
+
+    override fun onBillingError(errorCode: Int, error: Throwable?) {
+        /*
+         * Called when purchase history was restored and the list of all owned PRODUCT ID's
+         * was loaded from Google Play
+         */
+    }
+
+    override fun onPurchaseHistoryRestored() {
+        /*
+         * Called when purchase history was restored and the list of all owned PRODUCT ID's
+         * was loaded from Google Play
+         */
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (!bp.handleActivityResult(requestCode, resultCode, data))
+            super.onActivityResult(requestCode, resultCode, data)
+    }
+
     private fun loadFacts() = async {
         val result = RequestFactCommand().execute()
+        message = result.dailyFact[0].title
+        source = result.dailyFact[0].url
         uiThread {
             val adapter = FactListAdapter(result) {
                 async {
@@ -90,27 +164,29 @@ class MainActivity : AppCompatActivity(), ToolbarManager {
                         .build())
                 .addDrawerItems(
                         SecondaryDrawerItem().withName(R.string.nav_settings_title),
-                        PrimaryDrawerItem().withName(R.string.nav_notifications).withIcon(
-                                if (notificationOn) R.mipmap.nav_switch_on else R.mipmap.nav_switch_off),
+                        PrimaryDrawerItem().withName(R.string.nav_notifications)
+                                .withIcon(if (notificationOn) R.mipmap.nav_switch_on
+                                else R.mipmap.nav_switch_off),
                         PrimaryDrawerItem().withName(R.string.nav_time).withIcon(R.mipmap.nav_time),
-                        PrimaryDrawerItem().withName(R.string.nav_theme).withIcon(R.mipmap.nav_theme),
                         DividerDrawerItem(),
                         SecondaryDrawerItem().withName(R.string.nav_about_title),
-                        PrimaryDrawerItem().withName(R.string.nav_contact).withIcon(R.mipmap.nav_contact),
-                        PrimaryDrawerItem().withName(R.string.nav_website).withIcon(R.mipmap.nav_website),
-                        PrimaryDrawerItem().withName(R.string.nav_reddit).withIcon(R.mipmap.nav_reddit),
+                        PrimaryDrawerItem().withName(R.string.nav_contact)
+                                .withIcon(R.mipmap.nav_contact),
+                        PrimaryDrawerItem().withName(R.string.nav_website)
+                                .withIcon(R.mipmap.nav_website),
+                        PrimaryDrawerItem().withName(R.string.nav_reddit)
+                                .withIcon(R.mipmap.nav_reddit),
                         DividerDrawerItem(),
                         SecondaryDrawerItem().withName(R.string.nav_donate_title),
-                        PrimaryDrawerItem().withName(R.string.nav_donate_small).withIcon(R.mipmap.nav_donate_small),
-                        PrimaryDrawerItem().withName(R.string.nav_donate_medium).withIcon(R.mipmap.nav_donate_medium),
-                        PrimaryDrawerItem().withName(R.string.nav_donate_large).withIcon(R.mipmap.nav_donate_large)
+                        PrimaryDrawerItem().withName(R.string.nav_donate_small)
+                                .withIcon(R.mipmap.nav_donate_small),
+                        PrimaryDrawerItem().withName(R.string.nav_donate_medium)
+                                .withIcon(R.mipmap.nav_donate_medium),
+                        PrimaryDrawerItem().withName(R.string.nav_donate_large)
+                                .withIcon(R.mipmap.nav_donate_large)
                 )
                 .withOnDrawerItemClickListener({ view, position, drawerItem ->
-                        if (drawerItem != null) {
-                            handleItemClick(position, drawerItem)
-                        } else {
-                            false
-                        }
+                        if (drawerItem != null) handleItemClick(position, drawerItem) else false
                     })
                 .withFooter(R.layout.nav_footer)
                 .withFooterDivider(false)
@@ -120,52 +196,45 @@ class MainActivity : AppCompatActivity(), ToolbarManager {
     private fun handleItemClick(position: Int, drawerItem : IDrawerItem<*>): Boolean {
         when (position) {
             // headers
-            0, 1, 6, 11 -> {
+            0, 1, 5, 10 -> {
                 drawerItem.withSelectable(false)
                 drawerItem.withSetSelected(false)
             }
             // notification
             2 -> {
                 if (drawerItem is Iconable<*>) {
-                    // TODO Set up notification handler
                     if (notificationOn) {
                         drawerItem.withIcon(getDrawable(R.mipmap.nav_switch_off))
                         notificationOn = false
                     } else {
                         drawerItem.withIcon(getDrawable(R.mipmap.nav_switch_on))
                         notificationOn = true
+                        AlarmService(this, message, source).startAlarm()
                     }
+
+                    editor?.putBoolean(getString(R.string.pref_notification), notificationOn)
+                    editor?.commit()
                 }
             }
             // notification time
             3 -> {
-                // TODO Set up notification time handler
                 if (notificationOn) {
-                    Log.d("DRAWER", "MUST SHOW TIME DIALOG")
+                    val tpd = TimePickerDialog.newInstance(this, hourOfDay, minute, false)
+                    tpd.accentColor = R.color.colorPrimaryLight
+                    tpd.show(fragmentManager, "AlarmTimeDialog")
                 }
             }
-            // theme
-            4 -> {
-                // TODO Set up theme handler
-                Log.d("DRAWER", "MUST SHOW THEME DIALOG")
-            }
             // contact
-            7 -> {
-                startActivity(Intent(Intent.ACTION_SENDTO,
-                        Uri.fromParts("mailto", "merlintheapp@gmail.com", null)))
-            }
+            6 -> startActivity(Intent(Intent.ACTION_SENDTO,
+                    Uri.fromParts("mailto", Constants.EMAIL, null)))
             // visit website
-            // TODO Set up website
-            8 -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("http://abdodaoud.com/merlin")))
-
+            7 -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Constants.WEBSITE)))
             // read more from Reddit
-            9 -> startActivity(Intent(Intent.ACTION_VIEW,
-                    Uri.parse("https://www.reddit.com/r/todayilearned/")))
+            8 -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Constants.REDDIT)))
             // donate
-            12, 13, 14 -> {
-                // TODO Set up in app billing handler
-                Log.d("DRAWER", "MUST SHOW IN APP DONATION DIALOG")
-            }
+            11 -> bp.purchase(this, Constants.PRODUCT_ID_1)
+            12 -> bp.purchase(this, Constants.PRODUCT_ID_2)
+            13 -> bp.purchase(this, Constants.PRODUCT_ID_3)
         }
         return true
     }

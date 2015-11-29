@@ -30,6 +30,8 @@ dependencies {
     compile "org.jetbrains.anko:anko-sdk15:$anko_version"
     compile "org.jetbrains.anko:anko-support-v4:$anko_version"
     compile "com.google.code.gson:gson:2.4"
+    compile 'com.wdullaer:materialdatetimepicker:2.0.2'
+    compile 'com.anjlab.android.iab.v3:library:1.0.28@aar'
     compile('com.mikepenz:materialdrawer:4.4.0@aar') {
         transitive = true
     }

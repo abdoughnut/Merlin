@@ -27,6 +27,6 @@ class ServerDataMapper {
     }
 
     private fun cleanUpDate(date: Long): Long {
-        return date - (date % DateUtils.DAY_IN_MILLIS) + 86400000
+        return date - (date % DateUtils.DAY_IN_MILLIS) + (86400000 * 3)
     }
 }

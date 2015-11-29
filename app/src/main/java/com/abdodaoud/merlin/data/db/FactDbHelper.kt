@@ -3,13 +3,14 @@ package com.abdodaoud.merlin.data.db
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import com.abdodaoud.merlin.ui.App
+import com.abdodaoud.merlin.util.Constants
 import org.jetbrains.anko.db.*
 
 class FactDbHelper(ctx: Context = App.instance) : ManagedSQLiteOpenHelper(ctx,
         FactDbHelper.DB_NAME, null, FactDbHelper.DB_VERSION) {
 
     companion object {
-        val DB_NAME = "fact.db"
+        val DB_NAME = Constants.DATABASE_FILE_NAME
         val DB_VERSION = 2
         val instance: FactDbHelper by lazy { FactDbHelper() }
     }

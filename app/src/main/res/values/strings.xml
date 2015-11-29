@@ -18,4 +18,9 @@
     <string name="nav_donate_large">Generous</string>
     <string name="nav_footer">Every child has the right to an education.\nAll proceeds will go towards ensuring that right.</string>
     <string name="splash_screen_content_description">Image used for splash screen</string>
+    <string name="action_source">Source</string>
+    <string name="action_share">Share</string>
+    <string name="pref_notification">notification_enabled</string>
+    <string name="pref_hour">hour_of_notification</string>
+    <string name="pref_minute">minute_of_notification</string>
 </resources>

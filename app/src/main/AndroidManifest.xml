@@ -3,6 +3,8 @@
     package="com.abdodaoud.merlin">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="com.android.vending.BILLING" />
 
     <application
         android:name=".ui.App"
@@ -19,6 +21,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <receiver android:name=".util.AlarmReceiver"/>
     </application>
 
 </manifest>
