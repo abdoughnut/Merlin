@@ -8,6 +8,10 @@ class Constants {
         const val WEBSITE = "http://abdodaoud.com/merlin"
         const val REDDIT = "https://www.reddit.com/r/todayilearned/"
 
+        const val USER = "merlinoftheday"
+        const val REDDIT_API = "https://api.reddit.com"
+        const val FACTS_URL = "$REDDIT_API/user/$USER/upvoted"
+
         const val MERCHANT_ID = "YOUR MERCHANT ID FROM GOOGLE PLAY CONSOLE HERE"
         const val LICENSE_KEY = "YOUR LICENSE KEY FROM GOOGLE PLAY CONSOLE HERE"
 

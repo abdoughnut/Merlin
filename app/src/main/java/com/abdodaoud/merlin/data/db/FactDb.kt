@@ -5,6 +5,7 @@ import com.abdodaoud.merlin.domain.datasource.FactDataSource
 import com.abdodaoud.merlin.domain.model.Fact
 import com.abdodaoud.merlin.domain.model.FactList
 import com.abdodaoud.merlin.extensions.*
+import org.jetbrains.anko.db.SqlOrderDirection
 import org.jetbrains.anko.db.insert
 import org.jetbrains.anko.db.select
 import java.util.*
@@ -24,6 +25,7 @@ class FactDb(val factDbHelper: FactDbHelper = FactDbHelper.instance,
         val dailyRequest = "${DayFactTable.DATE} < ?"
         val dailyFact = select(DayFactTable.NAME)
                 .whereSimple(dailyRequest, date.toString())
+                .orderBy(DayFactTable.DATE, SqlOrderDirection.DESC)
                 .parseList { DayFact(HashMap(it)) }
 
         val mainFacts = select(MainFactsTable.NAME)

@@ -1,14 +1,13 @@
 package com.abdodaoud.merlin.data.server
 
+import com.abdodaoud.merlin.util.Constants
 import com.google.gson.Gson
 import java.net.URL
 
 class FactRequest(val gson: Gson = Gson()) {
 
     companion object {
-        private val USER = "merlinoftheday"
-        private val URL = "https://api.reddit.com"
-        private val COMPLETE_URL = "$URL/user/$USER/upvoted"
+        private val COMPLETE_URL = Constants.FACTS_URL
     }
 
     fun execute(): FactResult {
