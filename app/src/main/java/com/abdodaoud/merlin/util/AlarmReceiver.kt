@@ -9,16 +9,17 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
-
 import com.abdodaoud.merlin.R
+import com.abdodaoud.merlin.domain.commands.RequestFactCommand
 import com.abdodaoud.merlin.ui.activities.MainActivity
 
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val notificationId = 1
 
-        val message = intent.getStringExtra("message")
-        val source = intent.getStringExtra("source")
+        val result = RequestFactCommand().execute()
+        val message = result.dailyFact[0].title
+        val source = result.dailyFact[0].url
 
         val contentIntent = PendingIntent.getActivity(context, 0,
                 Intent(context, MainActivity::class.java)

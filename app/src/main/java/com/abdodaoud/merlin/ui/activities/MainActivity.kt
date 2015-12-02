@@ -53,9 +53,6 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
     var hourOfDay: Int = 9
     var minute: Int = 0
 
-    var message: String = ""
-    var source: String = ""
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -103,7 +100,7 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
         editor?.putInt(getString(R.string.pref_minute), minute)
         editor?.commit()
 
-        AlarmService(this, message, source).startAlarm()
+        AlarmService(this).startAlarm()
     }
 
     override fun onBillingInitialized() {
@@ -136,8 +133,6 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
 
     private fun loadFacts() = async {
         val result = RequestFactCommand().execute()
-        message = result.dailyFact[0].title
-        source = result.dailyFact[0].url
         uiThread {
             val adapter = FactListAdapter(result) {
                 async {
@@ -209,7 +204,7 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
                     } else {
                         drawerItem.withIcon(getDrawable(R.mipmap.nav_switch_on))
                         notificationOn = true
-                        AlarmService(this, message, source).startAlarm()
+                        AlarmService(this).startAlarm()
                     }
 
                     editor?.putBoolean(getString(R.string.pref_notification), notificationOn)

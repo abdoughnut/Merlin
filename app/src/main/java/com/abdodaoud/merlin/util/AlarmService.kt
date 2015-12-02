@@ -9,7 +9,7 @@ import android.os.IBinder
 import com.abdodaoud.merlin.R
 import java.util.*
 
-class AlarmService(val context: Context, message: String, source: String): Service() {
+class AlarmService(val context: Context): Service() {
     val mAlarmSender: PendingIntent
 
     val sharedPref = context.getSharedPreferences(Constants.PREF_FILE, Context.MODE_PRIVATE)
@@ -19,8 +19,7 @@ class AlarmService(val context: Context, message: String, source: String): Servi
 
     init {
         mAlarmSender = PendingIntent.getBroadcast(context, 0,
-                Intent(context, AlarmReceiver::class.java).putExtra("message", message)
-                        .putExtra("source", source), PendingIntent.FLAG_UPDATE_CURRENT)
+                Intent(context, AlarmReceiver::class.java), PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
     fun startAlarm() {
