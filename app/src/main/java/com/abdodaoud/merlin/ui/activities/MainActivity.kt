@@ -13,8 +13,9 @@ import android.support.v7.widget.Toolbar
 import android.view.View
 import android.widget.ImageView
 import com.abdodaoud.merlin.R
-import com.abdodaoud.merlin.domain.commands.RequestDayFactCommand
 import com.abdodaoud.merlin.domain.commands.RequestFactCommand
+import com.abdodaoud.merlin.extensions.maxDate
+import com.abdodaoud.merlin.extensions.zeroedTime
 import com.abdodaoud.merlin.ui.adapters.FactListAdapter
 import com.abdodaoud.merlin.util.AlarmService
 import com.abdodaoud.merlin.util.Constants
@@ -30,6 +31,7 @@ import com.mikepenz.materialdrawer.model.interfaces.Iconable
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog
 import kotlinx.android.synthetic.activity_main.*
+import me.mvdw.recyclerviewmergeadapter.adapter.RecyclerViewMergeAdapter
 import org.jetbrains.anko.async
 import org.jetbrains.anko.find
 import org.jetbrains.anko.uiThread
@@ -65,17 +67,25 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
         hourOfDay = sharedPref?.getInt(getString(R.string.pref_hour), 9) as Int
         minute = sharedPref?.getInt(getString(R.string.pref_minute), 0) as Int
 
+        loadFacts()
         setupNavDrawer()
 
         swipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary)
         swipeRefreshLayout.setOnRefreshListener {
-            loadFacts()
+//            checkForNewFacts()
             swipeRefreshLayout.isRefreshing = false
         }
 
         val linearLayoutManager = LinearLayoutManager(this)
         factList.layoutManager = linearLayoutManager
-        attachToScroll(factList, linearLayoutManager)
+
+        factList.addOnScrollListener(object: EndlessRecyclerOnScrollListener(linearLayoutManager) {
+            override fun onLoadMore(currentPage: Int) {
+                loadFacts(currentPage)
+            }
+        })
+
+        attachToScroll(factList)
     }
 
     override fun onPause() {
@@ -84,7 +94,7 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
 
     override fun onResume() {
         super.onResume()
-        loadFacts()
+//        checkForNewFacts()
     }
 
     override fun onDestroy() {
@@ -131,22 +141,56 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
             super.onActivityResult(requestCode, resultCode, data)
     }
 
-    private fun loadFacts() = async {
-        val result = RequestFactCommand().execute()
+    private fun loadFacts(currentPage: Int = 1) = async {
+        val lastDate = System.currentTimeMillis().zeroedTime().maxDate(currentPage)
+        val result = RequestFactCommand().execute(currentPage, lastDate)
         uiThread {
-            val adapter = FactListAdapter(result) {
-                async {
-                    val dayResult = RequestDayFactCommand(it.id).execute()
-                    uiThread {
-                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(dayResult.url)))
-                    }
+            val adapter = FactListAdapter(result)
+            if (factList.adapter != null) {
+                if (factList.adapter is RecyclerViewMergeAdapter<*>) {
+                    (factList.adapter as RecyclerViewMergeAdapter<FactListAdapter>)
+                            .addAdapter(adapter)
+                } else {
+                    val mergeAdapter = RecyclerViewMergeAdapter<FactListAdapter>()
+                    mergeAdapter.addAdapter(factList.adapter as FactListAdapter)
+                    mergeAdapter.addAdapter(adapter)
+                    factList.adapter = mergeAdapter
                 }
+            } else {
+                factList.adapter = adapter
             }
-            // TODO Fix the way data is retrieved to minimize data consumption
-            factList.adapter = adapter
             splashScreenImageView.visibility = View.GONE
         }
     }
+
+    //    private fun checkForNewFacts() = async {
+//        val lastDate = System.currentTimeMillis().zeroedTime().maxDate()
+//        val result = RequestFactCommand().execute(-1, lastDate)
+//        uiThread {
+//            val adapter = FactListAdapter(result) {
+//                async {
+//                    val dayResult = RequestDayFactCommand(it.id).execute()
+//                    uiThread {
+//                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(dayResult.url)))
+//                    }
+//                }
+//            }
+//            if (factList.adapter != null) {
+//                if (factList.adapter is RecyclerViewMergeAdapter<*>) {
+//                    (factList.adapter as RecyclerViewMergeAdapter<FactListAdapter>)
+//                            .addAdapter(adapter)
+//                } else {
+//                    val mergeAdapter = RecyclerViewMergeAdapter<FactListAdapter>()
+//                    mergeAdapter.addAdapter(factList.adapter as FactListAdapter)
+//                    mergeAdapter.addAdapter(adapter)
+//                    factList.adapter = mergeAdapter
+//                }
+//            } else {
+//                factList.adapter = adapter
+//            }
+//            splashScreenImageView.visibility = View.GONE
+//        }
+//    }
 
     private fun setupNavDrawer() {
         DrawerBuilder()

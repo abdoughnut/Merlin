@@ -8,5 +8,5 @@ class RequestDayFactCommand(
         val factProvider: FactProvider = FactProvider()) :
         Command<Fact> {
 
-    override fun execute() = factProvider.requestFact(id)
+    override fun execute(currentPage: Int, lastDate: Long) = factProvider.requestFact(id)
 }

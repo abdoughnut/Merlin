@@ -1,7 +1,6 @@
 package com.abdodaoud.merlin.data.db
 
 import com.abdodaoud.merlin.domain.datasource.FactDataSource
-
 import com.abdodaoud.merlin.domain.model.Fact
 import com.abdodaoud.merlin.domain.model.FactList
 import com.abdodaoud.merlin.extensions.*
@@ -20,11 +19,20 @@ class FactDb(val factDbHelper: FactDbHelper = FactDbHelper.instance,
         fact?.let { dataMapper.convertDayToDomain(it) }
     }
 
-    override fun request(date: Long) = factDbHelper.use {
+    override fun request(date: Long, currentPage: Int, lastDate: Long) = factDbHelper.use {
+        var maxDate = date
+        var minDate = date
 
-        val dailyRequest = "${DayFactTable.DATE} < ?"
+        if (currentPage == -1) {
+            minDate = lastDate.future()
+        } else {
+            maxDate = date.maxDate(currentPage)
+            minDate = date.minDate(currentPage)
+        }
+
         val dailyFact = select(DayFactTable.NAME)
-                .whereSimple(dailyRequest, date.toString())
+                .where("${DayFactTable.DATE} <= " + maxDate.toString() + " AND " +
+                        "${DayFactTable.DATE} >= " + minDate.toString())
                 .orderBy(DayFactTable.DATE, SqlOrderDirection.DESC)
                 .parseList { DayFact(HashMap(it)) }
 

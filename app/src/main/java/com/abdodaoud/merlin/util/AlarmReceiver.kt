@@ -11,13 +11,17 @@ import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
 import com.abdodaoud.merlin.R
 import com.abdodaoud.merlin.domain.commands.RequestFactCommand
+import com.abdodaoud.merlin.extensions.maxDate
+import com.abdodaoud.merlin.extensions.parseMessage
+import com.abdodaoud.merlin.extensions.zeroedTime
 import com.abdodaoud.merlin.ui.activities.MainActivity
 
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val notificationId = 1
 
-        val result = RequestFactCommand().execute()
+        val result = RequestFactCommand().execute(1,
+                System.currentTimeMillis().zeroedTime().maxDate())
         val message = result.dailyFact[0].title
         val source = result.dailyFact[0].url
 
@@ -28,8 +32,8 @@ class AlarmReceiver : BroadcastReceiver() {
         val sourceIntent = PendingIntent.getActivity(context, 0,
                 Intent(Intent.ACTION_VIEW, Uri.parse(source)), PendingIntent.FLAG_CANCEL_CURRENT)
 
-        val sendIntent = Intent(Intent.ACTION_SEND).putExtra(Intent.EXTRA_TEXT, message)
-                .setType("text/plain")
+        val sendIntent = Intent(Intent.ACTION_SEND).putExtra(Intent.EXTRA_TEXT,
+                message.parseMessage()).setType("text/plain")
 
         val shareIntent = PendingIntent.getActivity(context, 0, sendIntent,
                 PendingIntent.FLAG_CANCEL_CURRENT)
@@ -38,10 +42,11 @@ class AlarmReceiver : BroadcastReceiver() {
         val wearableExtender = NotificationCompat.WearableExtender()
                 .setBackground(BitmapFactory.decodeResource(context.resources,
                         R.drawable.wearable_background))
-                .addAction(NotificationCompat.Action(R.mipmap.ic_notification_share_wear,
-                        context.getString(R.string.action_share), shareIntent))
-                .addAction(NotificationCompat.Action(R.mipmap.ic_notification_source_wear,
-                        context.getString(R.string.action_source), sourceIntent))
+                // TODO: Just add favourite feature to wear and not source and share
+//                .addAction(NotificationCompat.Action(R.mipmap.ic_notification_share_wear,
+//                        context.getString(R.string.action_share), shareIntent))
+//                .addAction(NotificationCompat.Action(R.mipmap.ic_notification_source_wear,
+//                        context.getString(R.string.action_source), sourceIntent))
 
         val notificationBuilder = NotificationCompat.Builder(context)
                 .setSmallIcon(R.mipmap.ic_notification)
@@ -57,6 +62,7 @@ class AlarmReceiver : BroadcastReceiver() {
                         context.getString(R.string.action_share), shareIntent)
                 .addAction(R.mipmap.ic_notification_source,
                         context.getString(R.string.action_source), sourceIntent)
+                // TODO: Add favourite feature
                 .extend(wearableExtender)
 
         // Get an instance of the NotificationManager service

@@ -7,5 +7,6 @@ class RequestFactCommand(
         val factProvider: FactProvider = FactProvider()) :
         Command<FactList> {
 
-    override fun execute() = factProvider.request()
+    override fun execute(currentPage: Int, lastDate: Long) =
+            factProvider.request(currentPage, lastDate)
 }

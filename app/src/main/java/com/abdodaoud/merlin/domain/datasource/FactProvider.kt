@@ -1,11 +1,12 @@
 package com.abdodaoud.merlin.domain.datasource
 
-import android.text.format.DateUtils
 import com.abdodaoud.merlin.data.db.FactDb
 import com.abdodaoud.merlin.data.server.FactServer
 import com.abdodaoud.merlin.domain.model.Fact
 import com.abdodaoud.merlin.domain.model.FactList
 import com.abdodaoud.merlin.extensions.firstResult
+import com.abdodaoud.merlin.extensions.maxDate
+import com.abdodaoud.merlin.extensions.zeroedTime
 
 class FactProvider(val sources: List<FactDataSource> = FactProvider.SOURCES) {
 
@@ -14,24 +15,26 @@ class FactProvider(val sources: List<FactDataSource> = FactProvider.SOURCES) {
         val SOURCES = listOf(FactDb(), FactServer())
     }
 
-    fun request(): FactList = requestToSources {
-        val res = it.request(todayTimeSpan())
-        if (res != null && hasTodayFact(res)) res else null
+    fun request(currentPage: Int, lastDate: Long): FactList = requestToSources {
+        val res = it.request(todayTimeSpan(), currentPage, lastDate)
+        if (res != null && hasTodayFact(res, currentPage)) res else null
     }
 
-    private fun hasTodayFact(res: FactList): Boolean {
-        val created = System.currentTimeMillis() - (System.currentTimeMillis() % DateUtils.DAY_IN_MILLIS)
+    private fun hasTodayFact(res: FactList, currentPage: Int): Boolean {
+        if (currentPage == -1) currentPage == 1
+        val created = System.currentTimeMillis().zeroedTime()
         for (fact in res.dailyFact) {
-            if (fact.created == created) return true
+            if (fact.created == created.maxDate(currentPage)) return true
         }
         return false
     }
 
     fun requestFact(id: Long): Fact = requestToSources { it.requestDayFact(id) }
 
-    private fun todayTimeSpan() = System.currentTimeMillis() -
-            (System.currentTimeMillis() % DateUtils.DAY_IN_MILLIS) / DAY_IN_MILLIS * DAY_IN_MILLIS
+    private fun todayTimeSpan() = System.currentTimeMillis().zeroedTime() /
+            DAY_IN_MILLIS * DAY_IN_MILLIS
 
-    private fun <T : Any> requestToSources(f: (FactDataSource) -> T?): T = sources.firstResult { f(it) }
+    private fun <T : Any> requestToSources(f: (FactDataSource) -> T?): T =
+            sources.firstResult { f(it) }
 
 }

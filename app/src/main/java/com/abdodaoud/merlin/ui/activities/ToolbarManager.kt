@@ -3,10 +3,8 @@ package com.abdodaoud.merlin.ui.activities
 import android.support.design.widget.AppBarLayout
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.graphics.drawable.DrawerArrowDrawable
-import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.Toolbar
-import android.util.Log
 import com.abdodaoud.merlin.extensions.ctx
 import com.abdodaoud.merlin.extensions.slideEnter
 import com.abdodaoud.merlin.extensions.slideExit
@@ -31,14 +29,8 @@ interface ToolbarManager {
 
     private fun createUpDrawable() = DrawerArrowDrawable(toolbar.ctx).apply { progress = 1f }
 
-    fun attachToScroll(recyclerView: RecyclerView, layoutManager: LinearLayoutManager) {
-        recyclerView.addOnScrollListener(object : EndlessRecyclerOnScrollListener(layoutManager) {
-
-            override fun onLoadMore(currentPage: Int) {
-                // do something...
-                Log.i("AAAAAA", "HEELLOOOO " + currentPage)
-            }
-
+    fun attachToScroll(recyclerView: RecyclerView) {
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 

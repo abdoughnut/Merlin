@@ -8,9 +8,9 @@ abstract class EndlessRecyclerOnScrollListener(val mLinearLayoutManager: LinearL
 
     var previousTotal = 0 // The total number of items in the dataset after the last load
     var loading = true // True if we are still waiting for the last set of data to load.
-    val visibleThreshold = 5 // The minimum amount of items to have below your current scroll position before loading more.
+    val visibleThreshold = 7 // The minimum amount of items to have below your current scroll position before loading more.
 
-    private var current_page = 1
+    var currentPage = 1
 
     override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
         super.onScrolled(recyclerView, dx, dy)
@@ -29,8 +29,8 @@ abstract class EndlessRecyclerOnScrollListener(val mLinearLayoutManager: LinearL
         if (!loading && (totalItemCount - visibleItemCount) <= (firstVisibleItem + visibleThreshold)) {
             // End has been reached
             // Do something
-            current_page++
-            onLoadMore(current_page)
+            currentPage++
+            onLoadMore(currentPage)
             loading = true
         }
     }

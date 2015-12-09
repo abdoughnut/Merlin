@@ -10,7 +10,7 @@ class FactRequest(val gson: Gson = Gson()) {
         private val COMPLETE_URL = Constants.FACTS_URL
     }
 
-    fun execute(): FactResult {
+    fun execute(currentPage: Int): FactResult {
         val factJsonStr = URL(COMPLETE_URL).readText()
         return gson.fromJson(factJsonStr, FactResult::class.java)
     }

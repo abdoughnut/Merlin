@@ -1,7 +1,7 @@
 package com.abdodaoud.merlin.domain.model
 
 data class FactList(val id: Long, val dailyFact: List<Fact>) {
-    fun get(position: Int) = dailyFact[position]
+    operator fun get(position: Int) = dailyFact[position]
     fun size() = dailyFact.size
 }
 
