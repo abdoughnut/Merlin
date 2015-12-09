@@ -30,7 +30,6 @@ fun Long.future(days: Int = 1): Long {
     return this + (days * DateUtils.DAY_IN_MILLIS)
 }
 
-// TODO: clean up the message to be shared
 fun String.parseMessage(): String {
-    return this
+    return "\"" + this + "\"" + " - discover more facts through Merlin https://goo.gl/KQJPmJ"
 }
