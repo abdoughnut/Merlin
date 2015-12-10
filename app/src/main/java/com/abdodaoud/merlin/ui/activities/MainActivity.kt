@@ -21,6 +21,7 @@ import com.abdodaoud.merlin.util.AlarmService
 import com.abdodaoud.merlin.util.Constants
 import com.anjlab.android.iab.v3.BillingProcessor
 import com.anjlab.android.iab.v3.TransactionDetails
+import com.dd.CircularProgressButton
 import com.mikepenz.materialdrawer.AccountHeaderBuilder
 import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.model.DividerDrawerItem
@@ -45,6 +46,7 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
     override val density by lazy { resources.displayMetrics.density }
 
     val splashScreenImageView by lazy { find<ImageView>(R.id.splash_screen) }
+    val retryButton by lazy { find<CircularProgressButton>(R.id.retry_button) }
 
     val bp by lazy { BillingProcessor(this, Constants.LICENSE_KEY, Constants.MERCHANT_ID, this) }
 
@@ -74,6 +76,12 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
         swipeRefreshLayout.setOnRefreshListener {
 //            checkForNewFacts()
             swipeRefreshLayout.isRefreshing = false
+        }
+
+        retryButton.isIndeterminateProgressMode = true
+        retryButton.setOnClickListener {
+            if (retryButton.progress == 0 || retryButton.progress == 100 ||
+                    retryButton.progress == -1) loadFacts()
         }
 
         val linearLayoutManager = LinearLayoutManager(this)
@@ -142,10 +150,13 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
     }
 
     private fun loadFacts(currentPage: Int = 1) = async {
+        retryButton.progress = 50
         val lastDate = System.currentTimeMillis().zeroedTime().maxDate(currentPage)
+        // TODO Handle error and set retryButton.progress = -1
         val result = RequestFactCommand().execute(currentPage, lastDate)
         uiThread {
             val adapter = FactListAdapter(result)
+            retryButton.visibility = View.GONE
             if (factList.adapter != null) {
                 if (factList.adapter is RecyclerViewMergeAdapter<*>) {
                     (factList.adapter as RecyclerViewMergeAdapter<FactListAdapter>)
