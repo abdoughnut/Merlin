@@ -69,6 +69,12 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
         hourOfDay = sharedPref?.getInt(getString(R.string.pref_hour), 9) as Int
         minute = sharedPref?.getInt(getString(R.string.pref_minute), 0) as Int
 
+        retryButton.isIndeterminateProgressMode = true
+        retryButton.setOnClickListener {
+            if (retryButton.progress == 0 || retryButton.progress == 100 ||
+                    retryButton.progress == -1) loadFacts()
+        }
+
         loadFacts()
         setupNavDrawer()
 
@@ -76,12 +82,6 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
         swipeRefreshLayout.setOnRefreshListener {
 //            checkForNewFacts()
             swipeRefreshLayout.isRefreshing = false
-        }
-
-        retryButton.isIndeterminateProgressMode = true
-        retryButton.setOnClickListener {
-            if (retryButton.progress == 0 || retryButton.progress == 100 ||
-                    retryButton.progress == -1) loadFacts()
         }
 
         val linearLayoutManager = LinearLayoutManager(this)
@@ -149,10 +149,17 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
             super.onActivityResult(requestCode, resultCode, data)
     }
 
-    private fun loadFacts(currentPage: Int = 1) = async {
+    private fun loadFacts(currentPage: Int = 1) {
+        try {
+            _loadFacts(currentPage).get()
+        } catch (e: Exception) {
+            retryButton.progress = -1
+        }
+    }
+
+    private fun _loadFacts(currentPage: Int) = async {
         retryButton.progress = 50
         val lastDate = System.currentTimeMillis().zeroedTime().maxDate(currentPage)
-        // TODO Handle error and set retryButton.progress = -1
         val result = RequestFactCommand().execute(currentPage, lastDate)
         uiThread {
             val adapter = FactListAdapter(result)
