@@ -3,7 +3,30 @@ apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    buildToolsVersion '23.0.2'
+
+    //noinspection GroovyAssignabilityCheck
+    if(project.hasProperty("keystore.properties")
+            && new File(project.property("keystore.properties")).exists()) {
+
+        Properties props = new Properties()
+        props.load(new FileInputStream(file(project.property("keystore.properties"))))
+
+        signingConfigs {
+            release {
+                storeFile file(props['storeFile'])
+                storePassword props['storePassword']
+                keyAlias props['keyAlias']
+                keyPassword props['keyPassword']
+            }
+        }
+    } else {
+        //noinspection GroovyMissingReturnStatement
+        signingConfigs {
+            release {
+            }
+        }
+    }
 
     defaultConfig {
         applicationId "com.abdodaoud.merlin"
@@ -12,10 +35,12 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 }
