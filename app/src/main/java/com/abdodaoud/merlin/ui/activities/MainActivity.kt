@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
+import android.support.customtabs.CustomTabsIntent
 import android.support.design.widget.AppBarLayout
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AppCompatActivity
@@ -285,9 +286,22 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
             6 -> startActivity(Intent(Intent.ACTION_SENDTO,
                     Uri.fromParts("mailto", Constants.EMAIL, null)))
             // visit website
-            7 -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Constants.WEBSITE)))
+            7 -> CustomTabsIntent.Builder().setShowTitle(true)
+                    .setToolbarColor(getColor(R.color.colorPrimary))
+                    .setStartAnimations(this, R.anim.slide_in_right,
+                            R.anim.slide_out_left)
+                    .setExitAnimations(this, android.R.anim.slide_in_left,
+                            android.R.anim.slide_out_right)
+                    .build()
+                    .launchUrl(this, Uri.parse(Constants.WEBSITE))
             // read more from Reddit
-            8 -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Constants.REDDIT)))
+            8 -> CustomTabsIntent.Builder().setShowTitle(true)
+                    .setToolbarColor(getColor(R.color.colorPrimary))
+                    .setStartAnimations(this, R.anim.slide_in_right,
+                            R.anim.slide_out_left)
+                    .setExitAnimations(this, android.R.anim.slide_in_left,
+                            android.R.anim.slide_out_right).build()
+                    .launchUrl(this, Uri.parse(Constants.REDDIT))
             // donate
             11 -> bp.purchase(this, Constants.PRODUCT_ID_1)
             12 -> bp.purchase(this, Constants.PRODUCT_ID_2)
