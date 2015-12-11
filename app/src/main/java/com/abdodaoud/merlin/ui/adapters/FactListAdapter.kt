@@ -34,6 +34,8 @@ class FactListAdapter(val facts: FactList) :
 
     override fun getItemCount() = facts.size()
 
+    fun getItemAtPosition(position: Int) = facts.get(position)
+
     class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
 
         private val mContext = view.context

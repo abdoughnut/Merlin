@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
 
         swipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary)
         swipeRefreshLayout.setOnRefreshListener {
-//            checkForNewFacts()
+            checkForNewFacts()
             swipeRefreshLayout.isRefreshing = false
         }
 
@@ -103,7 +103,7 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
 
     override fun onResume() {
         super.onResume()
-//        checkForNewFacts()
+        checkForNewFacts()
     }
 
     override fun onDestroy() {
@@ -151,16 +151,16 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
     }
 
     private fun loadFacts(currentPage: Int = 1) {
+        retryButton.progress = 50
+        val lastDate = System.currentTimeMillis().zeroedTime().maxDate(currentPage)
         try {
-            _loadFacts(currentPage).get()
+            _loadFacts(currentPage, lastDate).get()
         } catch (e: Exception) {
             retryButton.progress = -1
         }
     }
 
-    private fun _loadFacts(currentPage: Int) = async {
-        retryButton.progress = 50
-        val lastDate = System.currentTimeMillis().zeroedTime().maxDate(currentPage)
+    private fun _loadFacts(currentPage: Int, lastDate: Long) = async {
         val result = RequestFactCommand().execute(currentPage, lastDate)
         uiThread {
             val adapter = FactListAdapter(result)
@@ -182,34 +182,46 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
         }
     }
 
-    //    private fun checkForNewFacts() = async {
-//        val lastDate = System.currentTimeMillis().zeroedTime().maxDate()
-//        val result = RequestFactCommand().execute(-1, lastDate)
-//        uiThread {
-//            val adapter = FactListAdapter(result) {
-//                async {
-//                    val dayResult = RequestDayFactCommand(it.id).execute()
-//                    uiThread {
-//                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(dayResult.url)))
-//                    }
-//                }
-//            }
-//            if (factList.adapter != null) {
-//                if (factList.adapter is RecyclerViewMergeAdapter<*>) {
-//                    (factList.adapter as RecyclerViewMergeAdapter<FactListAdapter>)
-//                            .addAdapter(adapter)
-//                } else {
-//                    val mergeAdapter = RecyclerViewMergeAdapter<FactListAdapter>()
-//                    mergeAdapter.addAdapter(factList.adapter as FactListAdapter)
-//                    mergeAdapter.addAdapter(adapter)
-//                    factList.adapter = mergeAdapter
-//                }
-//            } else {
-//                factList.adapter = adapter
-//            }
-//            splashScreenImageView.visibility = View.GONE
-//        }
-//    }
+    private fun checkForNewFacts() {
+        if (factList.adapter != null) {
+            async {
+                val fact = if (factList.adapter is RecyclerViewMergeAdapter<*>)
+                    ((factList.adapter as RecyclerViewMergeAdapter<FactListAdapter>)
+                            .getSubAdapter(0) as FactListAdapter).getItemAtPosition(0)
+                else (factList.adapter as FactListAdapter).getItemAtPosition(0)
+
+                val result = RequestFactCommand().execute(-1, fact.created)
+                uiThread {
+                    val adapter = FactListAdapter(result)
+                    if (factList.adapter != null) {
+                        if (factList.adapter is RecyclerViewMergeAdapter<*>) {
+                            val mergeAdapter = RecyclerViewMergeAdapter<FactListAdapter>()
+                            mergeAdapter.addAdapter(adapter)
+                            var count = 0
+                            val listCount = (factList.adapter as RecyclerViewMergeAdapter<FactListAdapter>)
+                                    .subAdapterCount
+                            while (count < listCount) {
+                                mergeAdapter.addAdapter((factList.adapter
+                                        as RecyclerViewMergeAdapter<FactListAdapter>).getSubAdapter(count))
+                                count++
+                            }
+                        } else {
+                            val mergeAdapter = RecyclerViewMergeAdapter<FactListAdapter>()
+                            mergeAdapter.addAdapter(adapter)
+                            mergeAdapter.addAdapter(factList.adapter as FactListAdapter)
+                            factList.adapter = mergeAdapter
+                        }
+                    } else {
+                        factList.adapter = adapter
+                    }
+                }
+            }
+        } else {
+            splashScreenImageView.visibility = View.VISIBLE
+            retryButton.visibility = View.VISIBLE
+            loadFacts()
+        }
+    }
 
     private fun setupNavDrawer() {
         DrawerBuilder()
