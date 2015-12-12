@@ -3,6 +3,7 @@ package com.abdodaoud.merlin.ui.adapters
 import android.content.Intent
 import android.net.Uri
 import android.support.customtabs.CustomTabsIntent
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
@@ -57,7 +58,7 @@ class FactListAdapter(val facts: FactList) :
             builderSingle.setAdapter(arrayAdapter) { dialog, which ->
                 when(which) {
                     0 -> CustomTabsIntent.Builder().setShowTitle(true)
-                            .setToolbarColor(mContext.getColor(R.color.colorPrimary))
+                            .setToolbarColor(ContextCompat.getColor(mContext, R.color.colorPrimary))
                             .setStartAnimations(mContext, R.anim.slide_in_right,
                                     R.anim.slide_out_left)
                             .setExitAnimations(mContext, android.R.anim.slide_in_left,

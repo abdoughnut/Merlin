@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.customtabs.CustomTabsIntent
 import android.support.design.widget.AppBarLayout
+import android.support.v4.content.ContextCompat
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
@@ -274,10 +275,10 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
             2 -> {
                 if (drawerItem is Iconable<*>) {
                     if (notificationOn) {
-                        drawerItem.withIcon(getDrawable(R.mipmap.nav_switch_off))
+                        drawerItem.withIcon(ContextCompat.getDrawable(this, R.mipmap.nav_switch_off))
                         notificationOn = false
                     } else {
-                        drawerItem.withIcon(getDrawable(R.mipmap.nav_switch_on))
+                        drawerItem.withIcon(ContextCompat.getDrawable(this, R.mipmap.nav_switch_on))
                         notificationOn = true
                         AlarmService(this).startAlarm()
                     }
@@ -299,7 +300,7 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
                     Uri.fromParts("mailto", Constants.EMAIL, null)))
             // visit website
             7 -> CustomTabsIntent.Builder().setShowTitle(true)
-                    .setToolbarColor(getColor(R.color.colorPrimary))
+                    .setToolbarColor(ContextCompat.getColor(this, R.color.colorPrimary))
                     .setStartAnimations(this, R.anim.slide_in_right,
                             R.anim.slide_out_left)
                     .setExitAnimations(this, android.R.anim.slide_in_left,
@@ -308,7 +309,7 @@ class MainActivity : AppCompatActivity(), ToolbarManager, TimePickerDialog.OnTim
                     .launchUrl(this, Uri.parse(Constants.WEBSITE))
             // read more from Reddit
             8 -> CustomTabsIntent.Builder().setShowTitle(true)
-                    .setToolbarColor(getColor(R.color.colorPrimary))
+                    .setToolbarColor(ContextCompat.getColor(this, R.color.colorPrimary))
                     .setStartAnimations(this, R.anim.slide_in_right,
                             R.anim.slide_out_left)
                     .setExitAnimations(this, android.R.anim.slide_in_left,
