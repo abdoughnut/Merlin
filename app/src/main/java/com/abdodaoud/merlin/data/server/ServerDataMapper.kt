@@ -20,7 +20,10 @@ class ServerDataMapper {
     }
 
     private fun cleanUpFact(title: String): String {
-        val cleanedUpFact = Html.fromHtml(title).trim().substring(3).trim()
+        var cleanedUpFact = Html.fromHtml(title).trim().substring(3).trim()
+        if (cleanedUpFact.substring(0, 1).equals(":")) {
+            cleanedUpFact = cleanedUpFact.substring(1).trim();
+        }
         if (cleanedUpFact.substring(0, 4).equals("that", true)) {
             return cleanedUpFact.substring(4).trim().capitalize()
         }
