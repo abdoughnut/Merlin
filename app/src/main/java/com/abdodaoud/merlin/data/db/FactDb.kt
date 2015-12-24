@@ -24,10 +24,10 @@ class FactDb(val factDbHelper: FactDbHelper = FactDbHelper.instance,
         var minDate = date
 
         if (currentPage == -1) {
-            minDate = lastDate.future()
+            minDate = lastDate.future().offset()
         } else {
-            maxDate = date.maxDate(currentPage)
-            minDate = date.minDate(currentPage)
+            maxDate = date.maxDate(currentPage).offset()
+            minDate = date.minDate(currentPage).offset()
         }
 
         val dailyFact = select(DayFactTable.NAME)

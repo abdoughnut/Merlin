@@ -22,6 +22,10 @@ fun Long.zeroedTime(): Long {
     return this - (this % DateUtils.DAY_IN_MILLIS)
 }
 
+fun Long.offset(): Long {
+    return this + TimeZone.getDefault().rawOffset
+}
+
 fun Long.past(days: Int = 1): Long {
     return this - (days * DateUtils.DAY_IN_MILLIS)
 }
